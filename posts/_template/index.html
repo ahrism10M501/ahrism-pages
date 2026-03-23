@@ -48,6 +48,25 @@
           `${post.date} ${post.tags.map(t => `<span class="tag">${t}</span>`).join(' ')}`;
       }
 
+      // YouTube embed extension for marked.js
+      const youtubeExtension = {
+        name: 'youtube',
+        level: 'block',
+        start(src) {
+          return src.match(/^https?:\/\/(?:www\.)?(?:youtube\.com|youtu\.be)/)?.index;
+        },
+        tokenizer(src) {
+          const match = src.match(/^(https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([\w-]+)[^\s]*)\n?/);
+          if (match) {
+            return { type: 'youtube', raw: match[0], videoId: match[2] };
+          }
+        },
+        renderer(token) {
+          return `<div class="video-container"><iframe src="https://www.youtube.com/embed/${token.videoId}" allowfullscreen></iframe></div>`;
+        }
+      };
+      marked.use({ extensions: [youtubeExtension] });
+
       // Load and render markdown
       const res = await fetch('./content.md');
       if (res.ok) {
