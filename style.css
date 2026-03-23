@@ -1,0 +1,88 @@
+/* Pico.css dark theme color overrides */
+:root {
+  --pico-background-color: #0a0a0a;
+  --pico-card-background-color: #111111;
+  --pico-card-border-color: #1e1e1e;
+  --pico-primary: #dc00c9;
+  --pico-primary-hover: #b800a8;
+  --pico-secondary: #4a62ff;
+  --pico-secondary-hover: #3a50dd;
+  --pico-color: #cccccc;
+  --pico-muted-color: #555555;
+  --pico-border-color: #1e1e1e;
+}
+
+/* Accent colors */
+.accent-primary { color: #dc00c9; }
+.accent-secondary { color: #4a62ff; }
+.accent-critical { color: #ff0000; }
+
+/* Section labels */
+.section-label {
+  font-size: 0.7rem;
+  color: #dc00c9;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 1rem;
+}
+
+/* Tag chips */
+.tag {
+  display: inline-block;
+  font-size: 0.75rem;
+  color: #4a62ff;
+  background: rgba(74, 98, 255, 0.1);
+  padding: 0.15rem 0.5rem;
+  border-radius: 3px;
+}
+
+/* Project cards grid */
+.project-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+@media (max-width: 768px) {
+  .project-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Project card */
+.project-card {
+  background: #111;
+  border: 1px solid #1e1e1e;
+  border-radius: 8px;
+  padding: 1.2rem;
+}
+.project-card h3 { margin-bottom: 0.3rem; font-size: 1rem; }
+.project-card p { color: #555; font-size: 0.85rem; margin-bottom: 0.8rem; }
+
+/* Blog post list item */
+.post-item {
+  padding: 0.8rem 0;
+  border-bottom: 1px solid #111;
+}
+.post-item h3 { margin-bottom: 0.2rem; font-size: 1rem; }
+.post-meta { font-size: 0.8rem; color: #555; }
+
+/* Post content area */
+.post-content img {
+  max-width: 100%;
+  border-radius: 6px;
+}
+.post-content pre {
+  background: #111;
+  border: 1px solid #1e1e1e;
+  border-radius: 6px;
+}
+
+/* CTA button (critical accent) */
+.btn-critical {
+  background: #ff0000;
+  color: #fff;
+  border: none;
+}
+
+/* Nav active link */
+nav a.active { color: #dc00c9; }
