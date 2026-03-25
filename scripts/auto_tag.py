@@ -21,7 +21,9 @@ Usage:
   uv run python auto_tag.py suggest --all        # 전체 포스트 태그 추천
 """
 
+import argparse
 import json
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -178,3 +180,61 @@ def init_tags(posts: list[dict]) -> tuple[list[str], dict[str, np.ndarray]]:
     print(f"tags.json: {len(tags)}개 태그")
     print(f".tag_cache.json: 임베딩 저장 완료")
     return tags, tag_embs
+
+
+def main():
+    parser = argparse.ArgumentParser(description="자동 태그 시스템")
+    sub = parser.add_subparsers(dest="command")
+
+    sub.add_parser("init", help="기존 포스트에서 tags.json + 태그 임베딩 초기화")
+
+    sp = sub.add_parser("suggest", help="태그 추천")
+    sp.add_argument("slug", nargs="?", help="포스트 slug")
+    sp.add_argument("--all", action="store_true", help="전체 포스트")
+
+    args = parser.parse_args()
+    from posts_list_update import scan_posts
+    from build_graph import extract_tfidf_keywords, get_post_text
+
+    if args.command == "init":
+        posts = scan_posts()
+        print(f"{len(posts)}개 포스트 스캔")
+        tags, _ = init_tags(posts)
+        print(f"태그: {tags}")
+
+    elif args.command == "suggest":
+        posts = scan_posts()
+        tag_cache_raw = load_tag_cache()
+        if not tag_cache_raw:
+            print("태그 캐시가 없습니다. 먼저 'init'을 실행하세요.", file=sys.stderr)
+            sys.exit(1)
+
+        tag_cache = {t: np.array(e) for t, e in tag_cache_raw.items()}
+        post_embs = get_post_embeddings(posts)
+
+        targets = posts if args.all else [p for p in posts if p["slug"] == args.slug]
+        if not targets:
+            print(f"'{args.slug}' 포스트를 찾을 수 없습니다.", file=sys.stderr)
+            sys.exit(1)
+
+        # TF-IDF는 전체 포스트 컨텍스트로 계산 (단일 문서 IDF 퇴화 방지)
+        all_texts = [get_post_text(p) for p in posts]
+        all_kw_lists = extract_tfidf_keywords(all_texts, top_n=10)
+        slug_to_idx = {p["slug"]: i for i, p in enumerate(posts)}
+
+        for post in targets:
+            if post["slug"] not in post_embs:
+                print(f"[{post['slug']}] 임베딩 없음, 스킵")
+                continue
+            idx = slug_to_idx[post["slug"]]
+            kw_list = list(all_kw_lists[idx].keys()) if idx < len(all_kw_lists) else []
+            tags = assign_tags(post_embs[post["slug"]], tag_cache, kw_list)
+            current = [normalize_tag(t) for t in post.get("tags", [])]
+            print(f"[{post['slug']}] 현재: {current} → 추천: {tags}")
+
+    else:
+        parser.print_help()
+
+
+if __name__ == "__main__":
+    main()
