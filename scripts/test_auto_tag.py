@@ -65,8 +65,30 @@ def test_recommend_tags():
     assert "python" in tags
     assert "docker" not in tags  # 유사도 낮아서 제외
 
+    # Verify sorted descending by similarity
+    assert tags[0] == "ml"  # highest similarity
+    # Verify float values returned and ordered
+    assert result[0][1] > result[1][1]
+
 def test_recommend_tags_empty():
     from auto_tag import recommend_tags
     import numpy as np
     result = recommend_tags(np.array([1.0, 0.0]), {}, threshold=0.4, max_tags=5)
     assert result == []
+
+def test_recommend_tags_max_tags():
+    """max_tags limits results even when more tags exceed threshold."""
+    from auto_tag import recommend_tags
+    import numpy as np
+
+    post_emb = np.array([1.0, 0.0])
+    tag_cache = {
+        "a": np.array([1.0, 0.0]),
+        "b": np.array([0.9, 0.1]),
+        "c": np.array([0.8, 0.2]),
+        "d": np.array([0.7, 0.3]),
+    }
+    result = recommend_tags(post_emb, tag_cache, threshold=0.5, max_tags=2)
+    assert len(result) == 2
+    # First result should be "a" (highest similarity)
+    assert result[0][0] == "a"
