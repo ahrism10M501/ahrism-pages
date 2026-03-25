@@ -67,6 +67,9 @@ def main():
                     print(f"  임베딩 없음, 스킵: [{slug}]")
                     continue
                 kw = list(all_kw_lists[tagless_indices[j]].keys()) if tagless_indices[j] < len(all_kw_lists) else []
+                # tag_cache는 이 루프에서 업데이트되지 않음:
+                # generate_new_tags로 새 태그가 생성돼도 다음 포스트의 recommend_tags는 이를 볼 수 없음.
+                # 새 태그 임베딩 계산은 다음 실행 시 init_tags에서 처리됨.
                 post["tags"] = assign_tags(post_embs[slug], tag_cache, kw)
                 new_tags_added.extend(post["tags"])
                 print(f"  태그 할당: [{slug}] → {post['tags']}")

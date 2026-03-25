@@ -211,10 +211,16 @@ def main():
 
         tag_cache = {t: np.array(e) for t, e in tag_cache_raw.items()}
         post_embs = get_post_embeddings(posts)
+        if not post_embs:
+            print("임베딩 캐시가 없습니다. 먼저 'uv run python post_update.py' 또는 'uv run python build_graph.py'를 실행하세요.", file=sys.stderr)
+            sys.exit(1)
 
         targets = posts if args.all else [p for p in posts if p["slug"] == args.slug]
         if not targets:
-            print(f"'{args.slug}' 포스트를 찾을 수 없습니다.", file=sys.stderr)
+            if not args.slug:
+                print("slug를 지정하거나 --all을 사용하세요.", file=sys.stderr)
+            else:
+                print(f"'{args.slug}' 포스트를 찾을 수 없습니다.", file=sys.stderr)
             sys.exit(1)
 
         # TF-IDF는 전체 포스트 컨텍스트로 계산 (단일 문서 IDF 퇴화 방지)
