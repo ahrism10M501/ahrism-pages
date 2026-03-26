@@ -1,7 +1,6 @@
 ---
 title: "OpenCV로 시작하는 컴퓨터 비전"
 date: 2026-03-23
-tags: [computer-vision, python, opencv]
 summary: "OpenCV로 이미지 전처리, 엣지 검출, 실시간 영상 처리까지"
 ---
 

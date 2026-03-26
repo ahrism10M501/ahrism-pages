@@ -1,7 +1,6 @@
 ---
 title: "Hello World — 첫 번째 글"
 date: 2026-03-18
-tags: [blog]
 summary: "ahrism 블로그의 첫 번째 글입니다."
 ---
 

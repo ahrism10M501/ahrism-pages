@@ -1,7 +1,7 @@
 ---
 title: "Docker로 재현 가능한 개발 환경 만들기"
 date: 2026-03-22
-tags: [devops, docker, linux]
+tags: [docker, 컨테이너, dockerfile]
 summary: "Dockerfile, Compose, 레이어 캐시 전략까지 실전 Docker"
 ---
 

@@ -1,7 +1,7 @@
 ---
 title: "인공신경망1 - 신경망과 내적"
 date: 2026-03-24
-tags: ["Deep-Learning", "DL", "python", "numpy"]
+tags: [딥러닝, 신경망, 벡터, 내적]
 summary: "딥러닝의 기초, 내적과 인공신경망의 원리를 알아봅시다"
 ---
 

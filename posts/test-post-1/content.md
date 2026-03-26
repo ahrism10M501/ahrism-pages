@@ -1,7 +1,6 @@
 ---
 title: "머신러닝 기초"
 date: 2026-03-19
-tags: [ml, tutorial, python]
 summary: "지도학습·비지도학습·강화학습 개념과 sklearn 예제"
 ---
 

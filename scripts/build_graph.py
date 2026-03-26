@@ -19,6 +19,7 @@ Usage:
 import argparse
 import hashlib
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -55,9 +56,26 @@ def save_cache(cache: dict):
 
 # ── 텍스트 준비 ────────────────────────────────────────────────────────────────
 
+def clean_text(text: str) -> str:
+    """마크다운·코드·URL 등을 제거하여 순수 텍스트만 남긴다."""
+    text = re.sub(r'```[\s\S]*?```', ' ', text)       # 펜스 코드블록
+    text = re.sub(r'`[^`]+`', ' ', text)               # 인라인 코드
+    text = re.sub(r'https?://\S+', ' ', text)          # URL
+    text = re.sub(r'\S+\.(py|txt|json|md|yml|yaml|jpg|png|html|css|js|dockerfile)\b',
+                  ' ', text, flags=re.IGNORECASE)       # 파일 경로
+    text = re.sub(r'!\[.*?\]\(.*?\)', ' ', text)       # 이미지
+    text = re.sub(r'\[([^\]]+)\]\([^\)]+\)', r'\1', text)  # 링크 → 텍스트
+    text = re.sub(r'\$\$[\s\S]*?\$\$', ' ', text)     # LaTeX 블록
+    text = re.sub(r'\$[^$]+\$', ' ', text)             # LaTeX 인라인
+    text = re.sub(r'[#*_|>~`]', ' ', text)             # 마크다운 기호
+    text = re.sub(r'\s+', ' ', text).strip()
+    return text
+
+
 def get_post_text(post: dict) -> str:
-    """임베딩·TF-IDF에 사용할 텍스트 조합: 제목 + 요약 + 본문."""
-    return "\n".join([post.get("title", ""), post.get("summary", ""), post.get("_body", "")])
+    """임베딩·TF-IDF에 사용할 텍스트 조합: 제목 + 요약 + 본문 (전처리 적용)."""
+    raw = "\n".join([post.get("title", ""), post.get("summary", ""), post.get("_body", "")])
+    return clean_text(raw)
 
 
 # ── 임베딩 ────────────────────────────────────────────────────────────────────
@@ -76,13 +94,27 @@ def compute_similarities(embeddings: np.ndarray) -> np.ndarray:
 
 # ── TF-IDF ────────────────────────────────────────────────────────────────────
 
+def _simple_korean_tokenizer(text: str) -> list[str]:
+    """Mecab 없을 때 사용하는 간이 한국어 토크나이저. 조사를 제거한다."""
+    tokens = text.split()
+    result = []
+    for token in tokens:
+        cleaned = re.sub(
+            r'(은|는|이|가|을|를|에|의|로|으로|와|과|도|만|까지|에서|부터|처럼|으로서|라고|이라|에게|한테|께)$',
+            '', token,
+        )
+        if len(cleaned) >= 2:
+            result.append(cleaned)
+    return result
+
+
 def extract_tfidf_keywords(texts: list[str], top_n: int = TFIDF_TOP_N) -> list[dict]:
     """각 텍스트에서 TF-IDF 상위 키워드 추출."""
     try:
         from konlpy.tag import Mecab
         tokenizer = Mecab().morphs
     except Exception:
-        tokenizer = str.split
+        tokenizer = _simple_korean_tokenizer
 
     vec = TfidfVectorizer(tokenizer=tokenizer, max_features=5000)
     mat = vec.fit_transform(texts)

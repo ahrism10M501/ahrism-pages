@@ -232,6 +232,7 @@ nav a.active { color: #dc00c9; }
   border: 1px solid #1e1e1e;
   border-radius: 8px;
   margin-bottom: 1rem;
+  overflow: hidden;
 }
 .graph-container.subgraph {
   height: 350px;

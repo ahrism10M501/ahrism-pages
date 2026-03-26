@@ -1,7 +1,6 @@
 ---
 title: "초간단 ALU 만들기"
 date: 2025-11-20
-tags: ["project", "electronic"]
 summary: "간단한 ALU를 논리게이트를 사용하여 직접 만들어 보았습니다"
 ---
 

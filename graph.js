@@ -49,6 +49,9 @@ function initGraph(container, graphData, options = {}) {
           'height': 30,
           'border-width': 2,
           'border-color': '#4a62ff',
+          'transition-property': 'background-color, border-color, color, opacity',
+          'transition-duration': '300ms',
+          'transition-timing-function': 'ease-in-out',
         },
       },
       {
@@ -58,6 +61,9 @@ function initGraph(container, graphData, options = {}) {
           'line-color': '#1e1e1e',
           'opacity': 'mapData(weight, 0.3, 1.0, 0.3, 0.8)',
           'curve-style': 'bezier',
+          'transition-property': 'line-color, opacity',
+          'transition-duration': '300ms',
+          'transition-timing-function': 'ease-in-out',
         },
       },
       {
@@ -91,6 +97,26 @@ function initGraph(container, graphData, options = {}) {
           'font-size': '13px',
         },
       },
+      {
+        selector: 'node.hovered',
+        style: {
+          'background-color': '#dc00c9',
+          'border-color': '#ffffff',
+          'border-width': 3,
+          'color': '#ffffff',
+          'overlay-color': '#dc00c9',
+          'overlay-opacity': 0.15,
+          'overlay-padding': 8,
+        },
+      },
+      {
+        selector: 'edge.highlighted',
+        style: {
+          'line-color': '#dc00c9',
+          'opacity': 1,
+          'width': 'mapData(weight, 0.3, 1.0, 2, 7)',
+        },
+      },
     ],
     layout: {
       name: 'fcose',
@@ -113,6 +139,15 @@ function initGraph(container, graphData, options = {}) {
     });
   }
 
+  cy.on('layoutstop', function () {
+    applyDepthEffect(cy);
+  });
+
+  const threshold = options.hoverWeightThreshold !== undefined ? options.hoverWeightThreshold : 0.4;
+  const defaultNode = options.defaultHighlightNodeId
+    ? cy.getElementById(options.defaultHighlightNodeId) : null;
+  setupHoverHighlight(cy, threshold, defaultNode && defaultNode.length > 0 ? defaultNode : null);
+
   return cy;
 }
 
@@ -122,6 +157,7 @@ function initGraph(container, graphData, options = {}) {
  * @param {string[]} matchedIds - IDs of nodes to highlight
  */
 function highlightNodes(cy, matchedIds) {
+  cy._searchHighlightActive = true;
   const idSet = new Set(matchedIds);
   cy.batch(function () {
     cy.nodes().forEach(function (node) {
@@ -148,8 +184,9 @@ function highlightNodes(cy, matchedIds) {
  * @param {Object} cy - Cytoscape instance
  */
 function resetHighlight(cy) {
+  cy._searchHighlightActive = false;
   cy.batch(function () {
-    cy.elements().removeClass('highlighted dimmed root');
+    cy.elements().removeClass('highlighted dimmed root hovered');
   });
 }
 
@@ -208,21 +245,74 @@ function renderSubgraph(container, graphData, rootId, depth, options = {}) {
 
   const subData = { nodes: subNodes, edges: subEdges };
 
-  // Render with initGraph
-  const cy = initGraph(container, subData, options);
-
-  // Style by depth
-  cy.batch(function () {
-    cy.nodes().forEach(function (node) {
-      const d = nodeDepths[node.data('id')] || 0;
-      if (d === 0) {
-        node.addClass('root');
-      } else {
-        // Dim progressively with depth
-        node.style('opacity', Math.max(0.2, 1.0 - d * 0.2));
-      }
-    });
-  });
+  // Render with initGraph; root node auto-highlighted via defaultHighlightNodeId
+  const cy = initGraph(container, subData, { ...options, defaultHighlightNodeId: rootId });
 
   return cy;
 }
+
+/**
+ * Highlight a node and its strong neighbors, dim the rest.
+ * @param {Object} cy - Cytoscape instance
+ * @param {Object} node - Cytoscape node to highlight
+ * @param {number} threshold - Minimum edge weight
+ * @param {string} nodeClass - Class for the focal node ('hovered' or 'root')
+ */
+function applyNodeHighlight(cy, node, threshold, nodeClass) {
+  const strongEdges = node.connectedEdges().filter(e => e.data('weight') >= threshold);
+  const strongNeighbors = strongEdges.connectedNodes().difference(node);
+  cy.batch(function () {
+    cy.elements().removeClass('highlighted hovered').addClass('dimmed');
+    strongNeighbors.removeClass('dimmed').addClass('highlighted');
+    node.removeClass('dimmed highlighted hovered').addClass(nodeClass);
+    strongEdges.removeClass('dimmed').addClass('highlighted');
+  });
+}
+
+/**
+ * Highlight nodes/edges connected to the hovered node with weight >= threshold.
+ * Skips if a search highlight is currently active.
+ * @param {Object} cy - Cytoscape instance
+ * @param {number} threshold - Minimum edge weight to highlight (default 0.4)
+ * @param {Object|null} defaultHighlightNode - Node to keep highlighted by default (subgraph root)
+ */
+function setupHoverHighlight(cy, threshold, defaultHighlightNode) {
+  if (defaultHighlightNode) {
+    applyNodeHighlight(cy, defaultHighlightNode, threshold, 'root');
+  }
+
+  cy.on('mouseover', 'node', function (evt) {
+    if (cy._searchHighlightActive) return;
+    applyNodeHighlight(cy, evt.target, threshold, 'hovered');
+  });
+
+  cy.on('mouseout', 'node', function () {
+    if (cy._searchHighlightActive) return;
+    if (defaultHighlightNode) {
+      applyNodeHighlight(cy, defaultHighlightNode, threshold, 'root');
+    } else {
+      cy.batch(function () {
+        cy.elements().removeClass('dimmed highlighted hovered');
+      });
+    }
+  });
+}
+
+/**
+ * Scale node sizes by degree (high-degree = larger = visually closer).
+ * Called after layout completes.
+ * @param {Object} cy - Cytoscape instance
+ */
+function applyDepthEffect(cy) {
+  const nodes = cy.nodes();
+  if (nodes.length === 0) return;
+  const maxDeg = nodes.reduce((m, n) => Math.max(m, n.degree()), 1);
+  const baseSize = 30;
+  cy.batch(function () {
+    nodes.forEach(function (node) {
+      const size = baseSize * (0.7 + 0.6 * node.degree() / maxDeg);
+      node.style({ width: size, height: size });
+    });
+  });
+}
+

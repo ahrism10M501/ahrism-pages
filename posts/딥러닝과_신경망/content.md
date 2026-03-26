@@ -1,7 +1,7 @@
 ---
 title: "딥러닝과 신경망"
 date: 2026-03-20
-tags: [ml, deep-learning, pytorch]
+tags: [딥러닝, 신경망, 역전파, 활성화함수]
 summary: "역전파 알고리즘, 활성화 함수, 과적합 방지 기법"
 ---
 

@@ -70,7 +70,7 @@ def main():
                 # tag_cache는 이 루프에서 업데이트되지 않음:
                 # generate_new_tags로 새 태그가 생성돼도 다음 포스트의 recommend_tags는 이를 볼 수 없음.
                 # 새 태그 임베딩 계산은 다음 실행 시 init_tags에서 처리됨.
-                post["tags"] = assign_tags(post_embs[slug], tag_cache, kw)
+                post["tags"] = assign_tags(post_embs[slug], tag_cache, kw, post_text=all_texts[tagless_indices[j]])
                 new_tags_added.extend(post["tags"])
                 print(f"  태그 할당: [{slug}] → {post['tags']}")
 

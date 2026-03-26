@@ -1,7 +1,6 @@
 ---
 title: "Python 성능 최적화 실전 가이드"
 date: 2026-03-21
-tags: [python, optimization, numpy]
 summary: "NumPy 벡터화, Numba JIT, 멀티프로세싱으로 Python 속도 끌어올리기"
 ---
 

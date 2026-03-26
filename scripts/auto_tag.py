@@ -23,7 +23,9 @@ Usage:
 
 import argparse
 import json
+import re
 import sys
+from functools import lru_cache
 from pathlib import Path
 
 import numpy as np
@@ -32,11 +34,71 @@ from sklearn.metrics.pairwise import cosine_similarity
 ROOT = Path(__file__).resolve().parent.parent
 TAGS_PATH = ROOT / "blog" / "tags.json"
 TAG_CACHE_PATH = ROOT / "blog" / ".tag_cache.json"
+VOCAB_PATH = Path(__file__).resolve().parent / "tag_vocabulary.json"
 
 MATCH_THRESHOLD = 0.4
 NEW_TAG_DEDUP_THRESHOLD = 0.8
 MAX_TAGS = 5
 MIN_TAGS = 2
+
+
+_PROGRAMMING_KEYWORDS = frozenset({
+    "import", "from", "for", "in", "if", "else", "def", "class", "return",
+    "print", "true", "false", "none", "self", "and", "or", "not", "is",
+    "with", "as", "try", "except", "while", "break", "continue", "pass",
+    "lambda", "yield", "raise", "del", "global", "assert", "finally",
+    "elif", "async", "await", "var", "let", "const", "function",
+})
+
+_KOREAN_STOPWORDS = frozenset({
+    "이", "그", "저", "것", "수", "등", "때", "및", "더", "또", "위",
+    "후", "각", "번째", "이용해", "글입니다", "합니다", "있습니다",
+    "됩니다", "입니다", "하는", "대한", "통해", "위한", "같은",
+    "다른", "하여", "해서", "에서", "으로", "이런", "있는",
+})
+
+_CODE_CHARS_RE = re.compile(r'[(){}\[\]=<>;,\.+*/\\:\'"!@#$%^&`~]')
+_KOREAN_PARTICLE_END_RE = re.compile(r'(를|을|에|의|는|은|가|이|다\.)$')
+
+
+def is_valid_tag(candidate: str) -> bool:
+    """태그 후보가 유효한지 검증."""
+    if _CODE_CHARS_RE.search(candidate):
+        return False
+    if candidate in _PROGRAMMING_KEYWORDS:
+        return False
+    if candidate in _KOREAN_STOPWORDS:
+        return False
+    if _KOREAN_PARTICLE_END_RE.search(candidate):
+        return False
+    if candidate.isdigit():
+        return False
+    return True
+
+
+@lru_cache(maxsize=4)
+def load_vocabulary(path: Path = VOCAB_PATH) -> list[str]:
+    """시드 태그 어휘 로드."""
+    if path.exists():
+        return json.loads(path.read_text(encoding="utf-8"))
+    return []
+
+
+def match_vocabulary_tags(
+    text: str,
+    vocabulary: list[str],
+    max_tags: int = 3,
+) -> list[str]:
+    """포스트 텍스트에서 어휘 태그를 매칭."""
+    text_lower = text.lower()
+    matched = []
+    for tag in vocabulary:
+        normalized = normalize_tag(tag)
+        if tag.lower() in text_lower:
+            matched.append(normalized)
+        if len(matched) >= max_tags:
+            break
+    return matched
 
 
 def normalize_tag(tag: str) -> str:
@@ -126,7 +188,10 @@ def generate_new_tags(
     candidates = []
     for kw in tfidf_keywords:
         normalized = normalize_tag(kw)
-        if normalized and normalized not in existing_names and len(normalized) >= 2:
+        if (normalized
+                and normalized not in existing_names
+                and len(normalized) >= 2
+                and is_valid_tag(normalized)):
             candidates.append(normalized)
         if len(candidates) >= max_new:
             break
@@ -140,14 +205,38 @@ def assign_tags(
     threshold: float = MATCH_THRESHOLD,
     max_tags: int = MAX_TAGS,
     min_tags: int = MIN_TAGS,
+    post_text: str = "",
 ) -> list[str]:
-    """포스트에 태그 할당: 추천 우선, 부족하면 생성."""
-    recommended = recommend_tags(post_emb, tag_cache, threshold, max_tags)
-    tags = [t for t, _ in recommended]
+    """포스트에 태그 할당: 어휘 매칭 → 임베딩 추천 → TF-IDF 생성."""
+    tags: list[str] = []
+    tag_set: set[str] = set()
 
+    # 1) 어휘 매칭 (가장 정확 — 텍스트에 실제로 등장하는 주제어)
+    if post_text:
+        vocab = load_vocabulary()
+        vocab_tags = match_vocabulary_tags(post_text, vocab, max_tags=max_tags)
+        for t in vocab_tags:
+            if t not in tag_set:
+                tags.append(t)
+                tag_set.add(t)
+
+    # 2) 임베딩 기반 추천 (의미적 유사도, 어휘 매칭 보충용)
+    if len(tags) < min_tags:
+        recommended = recommend_tags(post_emb, tag_cache, threshold, max_tags)
+        for t, _ in recommended:
+            if t not in tag_set:
+                tags.append(t)
+                tag_set.add(t)
+            if len(tags) >= max_tags:
+                break
+
+    # 3) TF-IDF 생성 (최후 fallback)
     if len(tags) < min_tags:
         new_tags = generate_new_tags(tfidf_keywords, tag_cache, max_new=min_tags - len(tags))
-        tags.extend(new_tags)
+        for t in new_tags:
+            if t not in tag_set:
+                tags.append(t)
+                tag_set.add(t)
 
     return tags[:max_tags]
 
@@ -234,7 +323,7 @@ def main():
                 continue
             idx = slug_to_idx[post["slug"]]
             kw_list = list(all_kw_lists[idx].keys()) if idx < len(all_kw_lists) else []
-            tags = assign_tags(post_embs[post["slug"]], tag_cache, kw_list)
+            tags = assign_tags(post_embs[post["slug"]], tag_cache, kw_list, post_text=all_texts[idx])
             current = [normalize_tag(t) for t in post.get("tags", [])]
             print(f"[{post['slug']}] 현재: {current} → 추천: {tags}")
 
