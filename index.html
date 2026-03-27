@@ -8,15 +8,22 @@
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-  <header class="container">
-    <nav>
-      <ul><li><strong><a href="./">ahrism</a></strong></li></ul>
-      <ul>
-        <li><a href="#about" class="active">About</a></li>
-        <li><a href="./blog/">Blog</a></li>
-      </ul>
-    </nav>
-  </header>
+  <aside id="sidebar">
+    <div class="sidebar-icons">
+      <button class="sidebar-btn active" data-label="Home" data-href="./">⌂</button>
+      <button class="sidebar-btn" data-panel="about" data-label="About">◉</button>
+      <button class="sidebar-btn" data-label="Blog" data-href="./blog/">≡</button>
+      <button class="sidebar-btn" data-panel="github" data-label="GitHub">⬡</button>
+    </div>
+    <div id="panel-about" class="sidebar-panel">
+      <div class="panel-header">About</div>
+      <p class="panel-placeholder">준비 중</p>
+    </div>
+    <div id="panel-github" class="sidebar-panel">
+      <div class="panel-header">GitHub</div>
+      <p class="panel-placeholder">준비 중</p>
+    </div>
+  </aside>
   <main class="container">
     <!-- Post Graph section -->
     <section id="post-graph">
@@ -87,6 +94,7 @@
           onNodeClick: function (slug) {
             window.location.href = './posts/' + slug + '/';
           },
+          userZoomingEnabled: false,
         });
       } else {
         // 그래프 데이터 부족 시 리스트 폴백
@@ -104,7 +112,7 @@
 
   const SNAP_THRESHOLD = 80; // px: 이 이상 당기면 확장
   const DEFAULT_VH = window.innerWidth <= 640 ? 40 : 45;
-  const EXPANDED_VH = 80;
+  const EXPANDED_VH = 100;
   const EASE = '0.35s cubic-bezier(0.34, 1.56, 0.64, 1)';
 
   let expanded = false;
@@ -126,11 +134,13 @@
   function snapExpand() {
     expanded = true;
     snapTo(EXPANDED_VH);
+    document.getElementById('post-graph').classList.add('expanded');
   }
 
   function snapCollapse() {
     expanded = false;
     snapTo(DEFAULT_VH);
+    document.getElementById('post-graph').classList.remove('expanded');
   }
 
   // ── Touch (mobile) ─────────────────────────────
@@ -179,5 +189,6 @@
   }, { passive: true });
 })();
 </script>
+  <script src="./sidebar.js"></script>
 </body>
 </html>
