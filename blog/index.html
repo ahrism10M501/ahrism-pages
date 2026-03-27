@@ -18,32 +18,30 @@
     </nav>
   </header>
   <main class="container">
-    <h1>Blog</h1>
-
-    <!-- Search bar -->
-    <div class="search-bar">
+    <!-- 1. 검색바 최상단 -->
+    <div class="search-bar" style="margin-top:1rem">
       <input type="text" id="search-input" placeholder="검색...">
-      <label class="toggle-label">
+      <label class="toggle-label" id="tfidf-label" style="display:none">
         <input type="checkbox" id="tfidf-toggle">
         키워드 가중
       </label>
     </div>
 
-    <!-- Tag filters -->
-    <div class="tag-filters" id="tag-filters"></div>
-
-    <!-- View toggle -->
-    <div class="view-toggle">
-      <button id="btn-graph">그래프</button>
-      <button id="btn-list" class="active">리스트</button>
+    <!-- 2. 태그 필터 + 뷰 토글 -->
+    <div style="display:flex;align-items:flex-start;gap:0.5rem;margin-bottom:1rem">
+      <div class="tag-filters" id="tag-filters" style="flex:1;margin-bottom:0"></div>
+      <div class="view-toggle" style="margin-bottom:0;flex-shrink:0;margin-top:0.15rem">
+        <button id="btn-graph" title="그래프 뷰">⬡</button>
+        <button id="btn-list" class="active" title="리스트 뷰">☰</button>
+      </div>
     </div>
 
-    <!-- Graph view (hidden by default) -->
+    <!-- 3. 그래프 뷰 -->
     <div id="graph-view" style="display:none">
       <div class="graph-container" id="graph-container"></div>
     </div>
 
-    <!-- List view -->
+    <!-- 4. 리스트 뷰 -->
     <div id="list-view">
       <div id="posts-container"></div>
     </div>
@@ -68,15 +66,31 @@
       }));
       const hasGraph = graphData && graphData.nodes.length > 1;
 
-      // --- 태그 필터 렌더링 ---
+      // --- 태그 필터 렌더링 (전체 칩 포함) ---
       const allTags = [...new Set(nodes.flatMap(n => n.tags || []))].sort();
       const tagContainer = document.getElementById('tag-filters');
+
+      // "전체" 칩
+      const allChip = document.createElement('span');
+      allChip.className = 'tag-filter active';
+      allChip.textContent = '전체';
+      allChip.dataset.all = '1';
+      allChip.addEventListener('click', () => {
+        document.querySelectorAll('.tag-filter:not([data-all])').forEach(c => c.classList.remove('active'));
+        allChip.classList.add('active');
+        applyFilters();
+      });
+      tagContainer.appendChild(allChip);
+
       allTags.forEach(tag => {
         const chip = document.createElement('span');
         chip.className = 'tag-filter';
         chip.textContent = tag;
         chip.addEventListener('click', () => {
+          allChip.classList.remove('active');
           chip.classList.toggle('active');
+          const anyActive = [...document.querySelectorAll('.tag-filter:not([data-all]).active')].length > 0;
+          if (!anyActive) allChip.classList.add('active');
           applyFilters();
         });
         tagContainer.appendChild(chip);
@@ -135,7 +149,7 @@
       function applyFilters() {
         const query = searchInput.value;
         const mode = tfidfToggle.checked ? 'tfidf' : 'text';
-        const activeTags = [...document.querySelectorAll('.tag-filter.active')]
+        const activeTags = [...document.querySelectorAll('.tag-filter:not([data-all]).active')]
           .map(el => el.textContent);
 
         // 검색 결과
@@ -163,7 +177,11 @@
         }
       }
 
+      const tfidfLabel = document.getElementById('tfidf-label');
       searchInput.addEventListener('input', () => {
+        const hasQuery = searchInput.value.trim();
+        tfidfLabel.style.display = hasQuery ? '' : 'none';
+        if (!hasQuery) tfidfToggle.checked = false;
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(applyFilters, 300);
       });
