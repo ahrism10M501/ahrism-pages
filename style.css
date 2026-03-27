@@ -297,7 +297,10 @@ nav a.active { color: #dc00c9; }
 }
 
 /* Prevent pull-to-refresh on all pages */
-body { overscroll-behavior-y: contain; }
+body {
+  overscroll-behavior-y: contain;
+  padding-left: 48px;
+}
 
 /* Editorial left-border block */
 .editorial-header {
@@ -317,4 +320,97 @@ body { overscroll-behavior-y: contain; }
 /* Mobile: smaller default graph height */
 @media (max-width: 640px) {
   :root { --graph-h: 40vh; }
+}
+
+/* ── Sidebar ─────────────────────────────────────────── */
+#sidebar {
+  position: fixed;
+  left: 0; top: 0;
+  width: 48px; height: 100vh;
+  background: #111111;
+  border-right: 1px solid #1e1e1e;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+}
+.sidebar-icons {
+  display: flex;
+  flex-direction: column;
+}
+.sidebar-btn {
+  width: 48px; height: 48px;
+  background: transparent;
+  border: none;
+  border-left: 2px solid transparent;
+  color: #555;
+  font-size: 1.2rem;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.15s, border-color 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.sidebar-btn:hover { color: #cccccc; }
+.sidebar-btn.active {
+  color: #dc00c9;
+  border-left-color: #dc00c9;
+}
+/* hover tooltip */
+.sidebar-btn::after {
+  content: attr(data-label);
+  position: absolute;
+  left: calc(100% + 8px); top: 50%;
+  transform: translateY(-50%);
+  background: #1e1e1e;
+  color: #ccc;
+  font-size: 0.7rem;
+  white-space: nowrap;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+  z-index: 200;
+}
+.sidebar-btn:hover::after { opacity: 1; }
+
+/* Sidebar panel (overlay) */
+.sidebar-panel {
+  position: fixed;
+  left: 48px; top: 0;
+  width: 220px; height: 100vh;
+  background: #111111;
+  border-right: 1px solid #1e1e1e;
+  z-index: 99;
+  transform: translateX(-100%);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow-y: auto;
+}
+.sidebar-panel.open { transform: translateX(0); }
+.panel-header {
+  padding: 1rem 1rem 0.5rem;
+  font-size: 0.7rem;
+  color: #dc00c9;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  border-bottom: 1px solid #1e1e1e;
+  margin-bottom: 0.5rem;
+}
+.panel-placeholder {
+  padding: 0.5rem 1rem;
+  color: #555;
+  font-size: 0.85rem;
+}
+
+/* ── Index graph upward expand ───────────────────────── */
+#post-graph {
+  padding-top: 1.5rem;
+  transition: padding-top 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+#post-graph.expanded { padding-top: 0; }
+#graph-hint { transition: opacity 0.2s ease; }
+#post-graph.expanded #graph-hint {
+  opacity: 0;
+  pointer-events: none;
 }
