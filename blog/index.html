@@ -16,7 +16,7 @@
       <button class="sidebar-btn" data-label="GitHub" data-href="../github/">⬡</button>
     </div>
     <div id="panel-about" class="sidebar-panel">
-      <div class="panel-header">About</div>
+      <div class="label">About</div>
       <p class="panel-placeholder">준비 중</p>
     </div>
   </aside>
@@ -97,11 +97,11 @@
 
       // "전체" 칩
       const allChip = document.createElement('span');
-      allChip.className = 'tag-filter active';
+      allChip.className = 'tag--filter active';
       allChip.textContent = '전체';
       allChip.dataset.all = '1';
       allChip.addEventListener('click', () => {
-        document.querySelectorAll('.tag-filter:not([data-all])').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tag--filter:not([data-all])').forEach(c => c.classList.remove('active'));
         allChip.classList.add('active');
         applyFilters();
       });
@@ -109,12 +109,12 @@
 
       allTags.forEach(tag => {
         const chip = document.createElement('span');
-        chip.className = 'tag-filter';
+        chip.className = 'tag--filter';
         chip.textContent = tag;
         chip.addEventListener('click', () => {
           allChip.classList.remove('active');
           chip.classList.toggle('active');
-          const anyActive = [...document.querySelectorAll('.tag-filter:not([data-all]).active')].length > 0;
+          const anyActive = [...document.querySelectorAll('.tag--filter:not([data-all]).active')].length > 0;
           if (!anyActive) allChip.classList.add('active');
           applyFilters();
         });
@@ -174,7 +174,7 @@
       function applyFilters() {
         const query = searchInput.value;
         const mode = tfidfToggle.checked ? 'tfidf' : 'text';
-        const activeTags = [...document.querySelectorAll('.tag-filter:not([data-all]).active')]
+        const activeTags = [...document.querySelectorAll('.tag--filter:not([data-all]).active')]
           .map(el => el.textContent);
 
         // 검색 결과
