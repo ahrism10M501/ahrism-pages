@@ -49,8 +49,30 @@
       <div id="posts-container"></div>
     </div>
   </main>
-  <footer class="container">
-    <small>&copy; 2024 ahrism</small>
+  <footer class="container" style="margin-top: 3rem; padding-bottom: 2rem;">
+    <div style="color: var(--pico-muted-color); font-size: 0.75rem; margin-bottom: 0.5rem;">
+      Built with PicoCSS & Cytoscape.js
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; border-top: 1px solid var(--pico-muted-border-color); padding-top: 1.5rem;">
+
+      <div style="flex: 1; min-width: 120px;">
+        <small>&copy; 2026 ahrism</small>
+      </div>
+
+      <div style="flex: 1; text-align: center; min-width: 100px;">
+        <a href="#" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;" class="secondary" style="text-decoration: none; font-size: 0.85rem; font-weight: bold;">
+          ↑ Top
+        </a>
+      </div>
+
+      <div style="flex: 1; display: flex; gap: 1.5rem; justify-content: flex-end; font-size: 0.85rem; min-width: 200px;">
+        <a href="https://github.com/ahrism10M501" target="_blank" rel="noopener noreferrer" class="secondary">GitHub</a>
+        <a href="https://www.youtube.com/@ahrism-3475" target="_blank" rel="noopener noreferrer" class="secondary">YouTube</a>
+        <a href="mailto:l.all.means@gmail.com" class="secondary">Contact</a>
+      </div>
+
+    </div>
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/cytoscape@3.30.4/dist/cytoscape.min.js"></script>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ahrism</title>
+  <title>Ahrism</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
   <link rel="stylesheet" href="./style.css">
 </head>
@@ -40,7 +40,7 @@
     <section id="about">
       <div class="editorial-header">
         <span class="editorial-label">About</span>
-        <h1>ahrism</h1>
+        <h1>Ahrism</h1>
         <p>Building Practical AI Systems · Physical Agents</p>
         <p>알고리즘을 밑바닥부터 이해하고, 소프트웨어 지능과 현실 세계의 접점을 만듭니다.</p>
         <div class="stack-groups">
@@ -62,7 +62,6 @@
         </div>
       </div>
 
-      <h3>관심사</h3>
       <p>실용적인 AI 시스템 개발에 관심이 있습니다. 이론적 토대 위에 실제로 동작하는 것을 만드는 과정을 즐깁니다.</p>
 
       <h3>프로젝트</h3>
@@ -70,14 +69,34 @@
 
       <h3>학력</h3>
       <p>경기대학교 창의공과대학 전자공학부</p>
-      <p style="margin-top:2rem">
-        <a href="./blog/" style="color:#4a62ff;font-size:0.9rem">Blog →</a>
-      </p>
+     
     </section>
   </main>
 
-  <footer class="container">
-    <small>&copy; 2026 ahrism</small>
+  <footer class="container" style="margin-top: 3rem; padding-bottom: 2rem;">
+    <div style="color: var(--pico-muted-color); font-size: 0.75rem; margin-bottom: 0.5rem;">
+      Built with PicoCSS & Cytoscape.js
+    </div>
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; border-top: 1px solid var(--pico-muted-border-color); padding-top: 1.5rem;">
+      
+      <div style="flex: 1; min-width: 120px;">
+        <small>&copy; 2026 ahrism</small>
+      </div>
+
+      <div style="flex: 1; text-align: center; min-width: 100px;">
+        <a href="#" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;" class="secondary" style="text-decoration: none; font-size: 0.85rem; font-weight: bold;">
+          ↑ Top
+        </a>
+      </div>
+
+      <div style="flex: 1; display: flex; gap: 1.5rem; justify-content: flex-end; font-size: 0.85rem; min-width: 200px;">
+        <a href="https://github.com/ahrism10M501" target="_blank" rel="noopener noreferrer" class="secondary">GitHub</a>
+        <a href="https://www.youtube.com/@ahrism-3475" target="_blank" rel="noopener noreferrer" class="secondary">YouTube</a>
+        <a href="mailto:l.all.means@gmail.com" class="secondary">Contact</a>
+      </div>
+      
+    </div>
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/cytoscape@3.30.4/dist/cytoscape.min.js"></script>
@@ -107,6 +126,55 @@
           },
           userZoomingEnabled: false,
         });
+        (function () {
+          var cy = window.__indexCy;
+          if (!cy) return;
+          var origSizes = {};
+          var SCALE = 1.7;
+          var GROW_MS = 500;
+          var HOLD_MS = 13000;
+          var SHRINK_MS = 500;
+          var INTERVAL_MS = GROW_MS + HOLD_MS; // 13500ms — crossover: next batch grows as current shrinks
+          cy.one('layoutstop', function () {
+            cy.nodes().forEach(function (node) {
+              origSizes[node.id()] = {
+                w: parseFloat(node.style('width')),
+                h: parseFloat(node.style('height'))
+              };
+            });
+            pulseRandom(); // 레이아웃 완료 직후 즉시 실행
+          });
+
+          function animateSize(node, fromW, fromH, toW, toH, ms, onDone) {
+            var start = performance.now();
+            function tick(now) {
+              var t = Math.min((now - start) / ms, 1);
+              var e = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+              node.style({ width: fromW + (toW - fromW) * e, height: fromH + (toH - fromH) * e });
+              if (t < 1) requestAnimationFrame(tick);
+              else if (onDone) onDone();
+            }
+            requestAnimationFrame(tick);
+          }
+
+          function pulseRandom() {
+            if (Object.keys(origSizes).length === 0) return;
+            var nodes = cy.nodes().toArray();
+            var count = 2 + Math.floor(Math.random() * 2); // 2 or 3
+            var picks = nodes.slice().sort(function () { return Math.random() - 0.5; }).slice(0, Math.min(count, nodes.length));
+            picks.forEach(function (node) {
+              var orig = origSizes[node.id()];
+              if (!orig) return;
+              var sw = orig.w * SCALE, sh = orig.h * SCALE;
+              animateSize(node, orig.w, orig.h, sw, sh, GROW_MS, function () {
+                setTimeout(function () {
+                  animateSize(node, sw, sh, orig.w, orig.h, SHRINK_MS);
+                }, HOLD_MS);
+              });
+            });
+          }
+          setInterval(pulseRandom, INTERVAL_MS);
+        })();
       } else {
         // 그래프 데이터 부족 시 리스트 폴백
         document.getElementById('graph-container').style.display = 'none';
@@ -155,7 +223,7 @@
 
   // ── Touch (mobile) ─────────────────────────────
   document.addEventListener('touchstart', function (e) {
-    if (window.scrollY > 2) return;
+    if (window.scrollY > 2 && !expanded) return;
     startY = e.touches[0].clientY;
     dragActive = true;
   }, { passive: true });
@@ -163,22 +231,22 @@
   document.addEventListener('touchmove', function (e) {
     if (!dragActive) return;
     const delta = e.touches[0].clientY - startY; // 양수 = 손가락 아래로 = overscroll 위
-    if (delta <= 0) { dragActive = false; return; }
+    if (delta <= 0 && !expanded) { dragActive = false; return; }
     if (!expanded) {
       setHPx(baseH() + delta * 0.4);
     }
   }, { passive: true });
 
-  document.addEventListener('touchend', function () {
+  document.addEventListener('touchend', function (e) {
     if (!dragActive) return;
     dragActive = false;
     if (!expanded) {
       const delta = gc.offsetHeight - baseH();
-      if (delta > SNAP_THRESHOLD) {
-        snapExpand();
-      } else {
-        snapCollapse();
-      }
+      if (delta > SNAP_THRESHOLD) snapExpand();
+      else snapCollapse();
+    } else {
+      const swipeDelta = e.changedTouches[0].clientY - startY;
+      if (swipeDelta < -SNAP_THRESHOLD) snapCollapse();
     }
   }, { passive: true });
 

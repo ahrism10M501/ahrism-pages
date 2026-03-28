@@ -92,8 +92,6 @@ function initGraph(container, graphData, options = {}) {
           'background-color': '#dc00c9',
           'border-color': '#dc00c9',
           'color': '#ffffff',
-          'width': 40,
-          'height': 40,
           'font-size': '13px',
         },
       },
@@ -104,10 +102,7 @@ function initGraph(container, graphData, options = {}) {
           'border-color': '#ffffff',
           'border-width': 3,
           'color': '#ffffff',
-          'overlay-color': '#dc00c9',
-          'overlay-opacity': 0.15,
-          'overlay-padding': 8,
-        },
+            },
       },
       {
         selector: 'edge.highlighted',
@@ -140,8 +135,9 @@ function initGraph(container, graphData, options = {}) {
     });
   }
 
+  applyDepthEffect(cy);
+
   cy.on('layoutstop', function () {
-    applyDepthEffect(cy);
     cy.fit(undefined, 40);
   });
 
@@ -279,8 +275,11 @@ function applyNodeHighlight(cy, node, threshold, nodeClass) {
  * @param {Object|null} defaultHighlightNode - Node to keep highlighted by default (subgraph root)
  */
 function setupHoverHighlight(cy, threshold, defaultHighlightNode) {
+  // subgraph root node gets 'root' class but no dimming on load
   if (defaultHighlightNode) {
-    applyNodeHighlight(cy, defaultHighlightNode, threshold, 'root');
+    cy.batch(function () {
+      defaultHighlightNode.addClass('root');
+    });
   }
 
   cy.on('mouseover', 'node', function (evt) {
@@ -290,13 +289,12 @@ function setupHoverHighlight(cy, threshold, defaultHighlightNode) {
 
   cy.on('mouseout', 'node', function () {
     if (cy._searchHighlightActive) return;
-    if (defaultHighlightNode) {
-      applyNodeHighlight(cy, defaultHighlightNode, threshold, 'root');
-    } else {
-      cy.batch(function () {
-        cy.elements().removeClass('dimmed highlighted hovered');
-      });
-    }
+    cy.batch(function () {
+      cy.elements().removeClass('dimmed highlighted hovered');
+      if (defaultHighlightNode) {
+        defaultHighlightNode.addClass('root');
+      }
+    });
   });
 }
 

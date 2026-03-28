@@ -567,6 +567,9 @@ body {
     color: #dc00c9;
     border-color: #dc00c9;
   }
+  #sidebar .sidebar-icons {
+    padding-top: 52px;
+  }
 }
 
 /* ── Index graph upward expand ───────────────────────── */
