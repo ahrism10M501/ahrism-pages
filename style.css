@@ -17,13 +17,42 @@
 .accent-secondary { color: #4a62ff; }
 .accent-critical { color: #ff0000; }
 
-/* Section labels */
-.section-label {
-  font-size: 0.7rem;
-  color: #dc00c9;
+/* Section label (unified) */
+.label {
+  font-size: 0.65rem;
+  color: #444;
   text-transform: uppercase;
   letter-spacing: 2px;
+  display: block;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid #1e1e1e;
+  position: relative;
   margin-bottom: 1rem;
+}
+.label::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 24px;
+  height: 1px;
+  background: #dc00c9;
+}
+
+/* Slash label — editorial-header 내부 전용 */
+.label--slash {
+  font-size: 0.62rem;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+.label--slash::before {
+  content: '/ ';
+  color: #dc00c9;
+  font-weight: 600;
+  letter-spacing: 0;
 }
 
 /* Tag chips */
@@ -314,17 +343,9 @@ body {
 
 /* Editorial left-border block */
 .editorial-header {
-  border-left: 2px solid var(--pico-primary);
+  border-left: 2px solid #ff0000;
   padding-left: 0.75rem;
   margin-bottom: 1.5rem;
-}
-.editorial-label {
-  font-size: 0.7rem;
-  color: var(--pico-primary);
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  margin-bottom: 0.2rem;
-  display: block;
 }
 
 /* Stack groups (Software / Hardware) */
@@ -422,15 +443,6 @@ body {
   overflow-y: auto;
 }
 .sidebar-panel.open { left: 48px; }
-.panel-header {
-  padding: 1rem 1rem 0.5rem;
-  font-size: 0.7rem;
-  color: #dc00c9;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  border-bottom: 1px solid #1e1e1e;
-  margin-bottom: 0.5rem;
-}
 .panel-placeholder {
   padding: 0.5rem 1rem;
   color: #555;
@@ -440,15 +452,6 @@ body {
 /* ── GitHub page ─────────────────────────────────────── */
 .gh-source-section {
   margin-bottom: 2.5rem;
-}
-.gh-source-label {
-  font-size: 0.7rem;
-  color: #dc00c9;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid #1e1e1e;
-  margin-bottom: 0;
 }
 .gh-repo-scroll {
   display: grid;
