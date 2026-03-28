@@ -49,7 +49,7 @@ function initGraph(container, graphData, options = {}) {
           'height': 30,
           'border-width': 2,
           'border-color': '#4a62ff',
-          'transition-property': 'background-color, border-color, color',
+          'transition-property': 'background-color, border-color, color, width, height',
           'transition-duration': '300ms',
           'transition-timing-function': 'ease-in-out',
         },
@@ -135,10 +135,9 @@ function initGraph(container, graphData, options = {}) {
     });
   }
 
-  applyDepthEffect(cy);
-
   cy.on('layoutstop', function () {
     cy.fit(undefined, 40);
+    applyDepthEffect(cy);
   });
 
   const threshold = options.hoverWeightThreshold !== undefined ? options.hoverWeightThreshold : 0.4;
@@ -306,12 +305,25 @@ function setupHoverHighlight(cy, threshold, defaultHighlightNode) {
 function applyDepthEffect(cy) {
   const nodes = cy.nodes();
   if (nodes.length === 0) return;
-  const maxDeg = nodes.reduce((m, n) => Math.max(m, n.degree()), 1);
+
+  // weighted degree (엣지 weight 합) 기반 — raw degree보다 분별력 높음
+  const scored = nodes.map(function (node) {
+    const wDeg = node.connectedEdges().reduce(function (sum, edge) {
+      return sum + (edge.data('weight') || 0);
+    }, 0);
+    return { node: node, score: wDeg };
+  });
+
+  // 오름차순 정렬 → 상위 20%만 확대
+  scored.sort(function (a, b) { return a.score - b.score; });
+  const thresholdIndex = Math.floor(scored.length * 0.8);
   const baseSize = 30;
+  const enlargedSize = 46;
+
   cy.batch(function () {
-    nodes.forEach(function (node) {
-      const size = baseSize * (0.7 + 0.6 * node.degree() / maxDeg);
-      node.style({ width: size, height: size });
+    scored.forEach(function (entry, index) {
+      var size = index >= thresholdIndex ? enlargedSize : baseSize;
+      entry.node.style({ width: size, height: size });
     });
   });
 }

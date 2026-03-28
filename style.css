@@ -663,3 +663,35 @@ body {
     font-size: 0.75rem;
   }
 }
+
+/* ── Mobile "Back to Home" button (graph expanded) ───── */
+#graph-back-btn {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  #post-graph.expanded #graph-back-btn {
+    display: block;
+    position: fixed;
+    bottom: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10000;
+    background: none;
+    color: #2a2a2a;
+    border: none;
+    border-radius: 0;
+    padding: 0.3rem 0;
+    font-size: 0.65rem;
+    font-weight: 400;
+    letter-spacing: 2px;
+    text-transform: none;
+    text-align: center;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  #post-graph.expanded #graph-back-btn:active {
+    color: #555;
+  }
+}
