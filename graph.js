@@ -215,7 +215,7 @@ function initGraph(container, graphData, options = {}) {
     ? cy.getElementById(options.defaultHighlightNodeId) : null;
   setupHoverHighlight(cy, threshold, defaultNode && defaultNode.length > 0 ? defaultNode : null);
 
-  setupEdgeTooltip(cy, container);
+  setupEdgeTooltip(cy);
 
   return cy;
 }
@@ -419,22 +419,26 @@ function applyDepthEffect(cy) {
  * @param {Object} cy - Cytoscape instance
  * @param {HTMLElement} container - Graph container DOM element
  */
-function setupEdgeTooltip(cy, container) {
-  const tip = document.createElement('div');
-  tip.id = 'edge-tooltip';
-  tip.style.cssText = [
-    'position:fixed',
-    'display:none',
-    'background:#111111',
-    'border:1px solid #1e1e1e',
-    'color:#cccccc',
-    'font-size:11px',
-    'padding:4px 8px',
-    'pointer-events:none',
-    'z-index:9999',
-    'white-space:nowrap',
-  ].join(';');
-  document.body.appendChild(tip);
+function setupEdgeTooltip(cy) {
+  // Reuse existing tooltip div (renderSubgraph re-creates cy but the DOM element is shared)
+  let tip = document.getElementById('edge-tooltip');
+  if (!tip) {
+    tip = document.createElement('div');
+    tip.id = 'edge-tooltip';
+    tip.style.cssText = [
+      'position:fixed',
+      'display:none',
+      'background:#111111',
+      'border:1px solid #1e1e1e',
+      'color:#cccccc',
+      'font-size:11px',
+      'padding:4px 8px',
+      'pointer-events:none',
+      'z-index:9999',
+      'white-space:nowrap',
+    ].join(';');
+    document.body.appendChild(tip);
+  }
 
   cy.on('mouseover', 'edge', function (evt) {
     const edge = evt.target;
@@ -453,6 +457,10 @@ function setupEdgeTooltip(cy, container) {
   });
 
   cy.on('mouseout', 'edge', function () {
+    tip.style.display = 'none';
+  });
+
+  cy.on('destroy', function () {
     tip.style.display = 'none';
   });
 }
