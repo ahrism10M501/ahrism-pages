@@ -38,7 +38,7 @@ jobs:
           done
 
       - name: Build JupyterLite
-        run: jupyter lite build --contents _jl_contents --output-dir lab
+        run: jupyter lite build --contents _jl_contents --output-dir lab --base-url /ahrism-pages/lab/
 
       - name: Prepare site
         run: |
