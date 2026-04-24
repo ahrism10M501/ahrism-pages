@@ -81,7 +81,7 @@ def run_pipeline(force: bool = False, posts_only: bool = False) -> RunState:
 
     # Stage 6: posts.json
     existing_posts = io.load_posts_json()
-    run_state.posts_json_changed = io.save_posts_json(posts, existing_posts)
+    run_state.posts_json_changed = io.save_posts_json(posts, existing_posts, force=force)
     print("posts.json 업데이트됨" if run_state.posts_json_changed else "posts.json 변경 없음")
 
     if not posts_only:

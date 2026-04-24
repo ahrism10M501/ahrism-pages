@@ -58,14 +58,20 @@ def save_posts_json(
     posts: list[PostRecord],
     existing: list[dict],
     path: Path | None = None,
+    force: bool = False,
 ) -> bool:
     """
     Merge scanned posts with existing posts.json entries (preserving manual entries).
     Strips internal '_' keys before writing.
     Writes atomically. Returns True if file content changed.
+
+    If force=True, existing entries are discarded — only scanned posts are kept
+    (deleted post folders are removed from posts.json).
     """
     target = path or config.POSTS_JSON
-    existing_map: dict[str, dict] = {p["slug"]: p for p in existing}
+    existing_map: dict[str, dict] = (
+        {} if force else {p["slug"]: p for p in existing}
+    )
 
     merged = dict(existing_map)
     for p in posts:

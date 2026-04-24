@@ -84,7 +84,7 @@ def main():
         for post in posts:
             post["tags"] = [normalize_tag(t) for t in post.get("tags", [])]
 
-    changed = update_posts_json(posts)
+    changed = update_posts_json(posts, force=args.force)
     print("posts.json 업데이트됨" if changed else "posts.json 변경 없음")
 
     if not args.posts_only:

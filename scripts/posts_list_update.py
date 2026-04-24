@@ -133,13 +133,15 @@ def scan_posts() -> list[dict]:
     return posts
 
 
-def update_posts_json(posts: list[dict]) -> bool:
+def update_posts_json(posts: list[dict], force: bool = False) -> bool:
     """posts.json을 업데이트한다. 변경이 있으면 True를 반환한다.
 
-    content.md / content.ipynb가 없는 기존 항목(수동 추가분)은 그대로 보존한다.
+    기본은 merge 모드 — content.md / content.ipynb가 없는 기존 항목(수동 추가분)은
+    그대로 보존한다.
+    force=True면 스캔된 포스트로만 완전히 덮어쓴다 (삭제된 폴더는 제거됨).
     """
     existing: dict[str, dict] = {}
-    if POSTS_JSON.exists():
+    if not force and POSTS_JSON.exists():
         for p in json.loads(POSTS_JSON.read_text(encoding="utf-8")):
             existing[p["slug"]] = p
 
