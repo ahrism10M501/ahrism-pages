@@ -25,7 +25,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from pipeline import config, embedder, graph_builder, io, scanner, state, tagger
+from pipeline import config, embedder, graph_builder, io, scanner, state, supernode_builder, tagger
 from pipeline.models import RunState
 
 
@@ -88,6 +88,10 @@ def run_pipeline(force: bool = False, posts_only: bool = False) -> RunState:
         # Re-build graph with normalised tags from stage 5
         cache = io.load_post_cache()
         graph_builder.build_graph(posts, cache)
+
+        # Stage 8: supernodes
+        print("슈퍼노드 군집화 중...")
+        supernode_builder.build_supernodes(posts)
 
     return run_state
 
