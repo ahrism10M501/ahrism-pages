@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Twinkle — Ahrism</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body data-page="2">
+  <aside id="sidebar">
+    <div class="sidebar-icons">
+      <button class="sidebar-btn" data-label="Home" data-href="../">⌂</button>
+      <button class="sidebar-btn" data-panel="about" data-label="About">◉</button>
+      <button class="sidebar-btn" data-label="Blog" data-href="../blog/">≡</button>
+      <button class="sidebar-btn active" data-label="Twinkle" data-href="../twinkle/">✦</button>
+      <button class="sidebar-btn" data-label="GitHub" data-href="../github/">⬡</button>
+    </div>
+    <div id="panel-about" class="sidebar-panel">
+      <div class="label">About</div>
+      <p class="panel-placeholder">준비 중</p>
+    </div>
+  </aside>
+
+  <div id="page-content">
+  <main class="container">
+    <div class="twinkle-layout">
+      <div class="twinkle-feed" id="twinkle-feed">
+        <div class="label">✦ TWINKLE</div>
+        <p style="color:#555;font-size:0.85rem">로딩 중...</p>
+      </div>
+      <div class="twinkle-archive" id="twinkle-archive">
+        <div class="twinkle-archive-resize" id="archive-resize-handle">⠿</div>
+        <div class="twinkle-archive-inner">
+          <div class="label">ARCHIVE</div>
+          <div class="archive-tag-chips" id="archive-tags"></div>
+          <div class="archive-list" id="archive-list"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+  </div>
+
+  <script src="../sidebar.js"></script>
+  <script>
+(function () {
+  const WINDOW_SIZE = 5;
+  const PREVIEW_LEN = 300;
+  const SS_KEY = 'twinkle-expanded';
+
+  const state = {
+    twinkles: [],
+    anchor: null,
+    tag: null,
+    expanded: new Set(),
+  };
+
+  function loadExpanded() {
+    try { return new Set(JSON.parse(sessionStorage.getItem(SS_KEY) || '[]')); }
+    catch { return new Set(); }
+  }
+
+  function saveExpanded() {
+    sessionStorage.setItem(SS_KEY, JSON.stringify([...state.expanded]));
+  }
+
+  function filterByTag(list) {
+    if (!state.tag) return list;
+    return list.filter(t => t.tags.includes(state.tag));
+  }
+
+  function getFeedWindow(list) {
+    if (!state.anchor) return list.slice(0, WINDOW_SIZE);
+    const idx = list.findIndex(t => t.slug === state.anchor);
+    if (idx === -1) return list.slice(0, WINDOW_SIZE);
+    const start = Math.max(0, idx - 2);
+    const end = Math.min(list.length, start + WINDOW_SIZE);
+    return list.slice(start, end);
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function renderCard(t) {
+    const isAnchor = t.slug === state.anchor;
+    const isExpanded = state.expanded.has(t.slug);
+    const needsTrunc = t.content.length > PREVIEW_LEN;
+    const body = (needsTrunc && !isExpanded)
+      ? escapeHtml(t.content.slice(0, PREVIEW_LEN)) + '...'
+      : escapeHtml(t.content);
+    const tagsHtml = t.tags.map(tag =>
+      `<span class="tag">${escapeHtml(tag)}</span>`
+    ).join(' ');
+    const moreBtn = needsTrunc
+      ? `<button class="twinkle-more-btn" data-slug="${t.slug}">${isExpanded ? '▲ 접기' : '▼ 더보기'}</button>`
+      : '';
+    return `
+      <div class="twinkle-card${isAnchor ? ' anchor' : ''}" id="card-${t.slug}">
+        <div class="twinkle-card-header">
+          <span class="twinkle-card-date">${t.date}</span>
+          <span>${tagsHtml}</span>
+        </div>
+        <div class="twinkle-card-body">${body}</div>
+        ${moreBtn}
+      </div>`;
+  }
+
+  function renderFeed() {
+    const filtered = filterByTag(state.twinkles);
+    const window = getFeedWindow(filtered);
+    const feedEl = document.getElementById('twinkle-feed');
+    feedEl.innerHTML = '<div class="label">✦ TWINKLE</div>' + (
+      window.length
+        ? window.map(renderCard).join('')
+        : '<p style="color:#555;font-size:0.85rem">트윈클이 없습니다.</p>'
+    );
+    feedEl.querySelectorAll('.twinkle-more-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const slug = btn.dataset.slug;
+        state.expanded.has(slug) ? state.expanded.delete(slug) : state.expanded.add(slug);
+        saveExpanded();
+        renderFeed();
+      });
+    });
+  }
+
+  function renderArchive() {
+    const filtered = filterByTag(state.twinkles);
+    const allTags = [...new Set(state.twinkles.flatMap(t => t.tags))];
+    document.getElementById('archive-tags').innerHTML =
+      ['전체', ...allTags].map(tag => {
+        const isActive = tag === '전체' ? !state.tag : state.tag === tag;
+        return `<span class="archive-tag-chip${isActive ? ' active' : ''}" data-tag="${tag}">${escapeHtml(tag)}</span>`;
+      }).join('');
+    document.getElementById('archive-list').innerHTML =
+      filtered.map(t =>
+        `<div class="archive-item${t.slug === state.anchor ? ' active' : ''}" data-slug="${t.slug}">
+          <span class="archive-date">${t.date.slice(5)}</span>${escapeHtml(t.title)}
+        </div>`
+      ).join('');
+
+    document.querySelectorAll('.archive-tag-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        state.tag = chip.dataset.tag === '전체' ? null : chip.dataset.tag;
+        state.anchor = null;
+        history.replaceState(null, '', location.pathname);
+        renderFeed();
+        renderArchive();
+      });
+    });
+    document.querySelectorAll('.archive-item').forEach(item => {
+      item.addEventListener('click', () => {
+        state.anchor = item.dataset.slug;
+        history.replaceState(null, '', '#' + item.dataset.slug);
+        renderFeed();
+        renderArchive();
+      });
+    });
+  }
+
+  function initResizeDrag() {
+    const handle = document.getElementById('archive-resize-handle');
+    const archive = document.getElementById('twinkle-archive');
+    if (!handle || !archive) return;
+    let startX, startW;
+    handle.addEventListener('mousedown', e => {
+      startX = e.clientX;
+      startW = archive.offsetWidth;
+      function onMove(e) {
+        const newW = Math.max(120, Math.min(400, startW + (startX - e.clientX)));
+        archive.style.width = newW + 'px';
+      }
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', () => {
+        document.removeEventListener('mousemove', onMove);
+      }, { once: true });
+    });
+  }
+
+  (async () => {
+    state.expanded = loadExpanded();
+    try {
+      const res = await fetch('./twinkles.json');
+      if (!res.ok) throw new Error(res.status);
+      state.twinkles = await res.json();
+    } catch (e) {
+      document.getElementById('twinkle-feed').innerHTML =
+        '<div class="label">✦ TWINKLE</div><p style="color:#555">twinkles.json 로드 실패.</p>';
+      return;
+    }
+    const hash = location.hash.slice(1);
+    if (hash && state.twinkles.some(t => t.slug === hash)) {
+      state.anchor = hash;
+    }
+    renderFeed();
+    renderArchive();
+    initResizeDrag();
+  })();
+})();
+  </script>
+</body>
+</html>
