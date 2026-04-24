@@ -347,5 +347,6 @@
       "target": "simple_ALU",
       "weight": 0.4484
     }
-  ]
+  ],
+  "supernodes": []
 }
