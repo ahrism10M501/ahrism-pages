@@ -141,6 +141,22 @@
         tagContainer.appendChild(chip);
       });
 
+      // URL ?tags= 파라미터로 태그 필터 자동 적용
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlTagParam = urlParams.get('tags');
+      if (urlTagParam) {
+        const urlTags = urlTagParam.split(',').map(decodeURIComponent);
+        allChip.classList.remove('active');
+        document.querySelectorAll('.tag--filter:not([data-all])').forEach(chip => {
+          if (urlTags.includes(chip.textContent)) {
+            chip.classList.add('active');
+          }
+        });
+        const anyActive = [...document.querySelectorAll('.tag--filter:not([data-all]).active')].length > 0;
+        if (!anyActive) allChip.classList.add('active');
+        applyFilters();
+      }
+
       // --- 뷰 토글 ---
       const btnGraph = document.getElementById('btn-graph');
       const btnList = document.getElementById('btn-list');
