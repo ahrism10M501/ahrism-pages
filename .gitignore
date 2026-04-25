@@ -19,7 +19,12 @@ scripts/.pytest_cache/
 blog/.post_cache.json
 blog/.tag_cache.json
 
-# 빌드 산출물 — content.md/.ipynb로부터 build_site.py가 매번 재생성
+# 빌드 산출물 — templates/ + content.md로부터 build_site.py가 매번 재생성
+index.html
+about/index.html
+blog/index.html
+twinkle/index.html
+github/index.html
 posts/*/index.html
 
 # JupyterLite (CI에서 빌드됨)
