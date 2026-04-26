@@ -5,15 +5,6 @@
 {% endblock %}
 
 {% block content %}
-<aside class="twinkle-archive" id="twinkle-home-archive">
-  <div class="twinkle-archive-resize" id="twinkle-home-resize-handle">⠿</div>
-  <div class="twinkle-archive-inner">
-    <div class="label">ARCHIVE</div>
-    <div class="archive-tag-chips" id="twinkle-home-archive-tags"></div>
-    <div class="archive-list" id="twinkle-home-archive-list"></div>
-  </div>
-</aside>
-
 <main class="container">
   <section id="post-graph">
     <div id="graph-hint" style="text-align:center;font-size:0.65rem;color:#2a2a2a;letter-spacing:2px;padding:0.3rem 0;user-select:none">↑ PULL</div>
@@ -61,18 +52,6 @@
       <a href="{{ root }}about/" class="secondary">전체 소개 보기 →</a>
     </p>
   </section>
-
-  <section id="twinkle-home">
-    <div class="label" style="margin-bottom:1rem">✦ TWINKLE</div>
-    <div class="twinkle-layout">
-      <div class="twinkle-feed-col">
-        <div id="twinkle-home-mobile-tags" class="twinkle-mobile-tags"></div>
-        <div class="twinkle-feed" id="twinkle-home-feed">
-          <p style="color:#555;font-size:0.85rem">로딩 중...</p>
-        </div>
-      </div>
-    </div>
-  </section>
 </main>
 {% endblock %}
 
@@ -92,24 +71,4 @@ fetch('{{ root }}projects.json')
   .catch(() => {});
 </script>
 <script src="{{ root }}src/home-graph.js" data-graph="{{ root }}blog/graph.json" data-posts="{{ root }}blog/posts.json" data-twinkles="{{ root }}twinkle/twinkles.json" data-posts-base="{{ root }}posts/"></script>
-<script src="{{ root }}src/twinkle-feed.js"></script>
-<script>
-initTwinkleFeed({
-  twinklesUrl: '{{ root }}twinkle/twinkles.json',
-  sessionKey: 'twinkle-home-expanded',
-  ids: {
-    feed: 'twinkle-home-feed',
-    archive: 'twinkle-home-archive',
-    archiveTags: 'twinkle-home-archive-tags',
-    archiveList: 'twinkle-home-archive-list',
-    mobileTags: 'twinkle-home-mobile-tags',
-    resizeHandle: 'twinkle-home-resize-handle',
-    prev: 'twinkle-home-prev',
-    next: 'twinkle-home-next',
-    cardPrefix: 'twinkle-home-card-',
-  },
-  useHash: false,
-  prependLabel: false,
-});
-</script>
 {% endblock %}

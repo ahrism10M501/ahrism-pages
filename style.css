@@ -1316,6 +1316,8 @@ body {
   margin-top: 3rem;
   padding-bottom: 2rem;
   margin-right: 200px;
+  position: relative;
+  z-index: 51;
 }
 .site-footer-credit {
   color: var(--pico-muted-color);
