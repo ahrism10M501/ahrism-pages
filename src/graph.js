@@ -220,6 +220,8 @@ function initGraph(container, graphData, options = {}) {
       name: 'fcose',
       animate: true,
       animationDuration: 500,
+      fit: true,
+      padding: 40,
       idealEdgeLength: function (edge) {
         return 200 / (edge.data('weight') || 0.5);
       },

@@ -1,6 +1,7 @@
 # ahrism-pages
 
-GitHub Pages 포트폴리오 + 블로그. 순수 HTML/JS, 서버 없음. 빌드 단계는 Jinja2 템플릿 렌더링뿐.
+GitHub Pages 포트폴리오 + 블로그. 순수 HTML/JS, 서버 없음.
+빌드는 `main.py` 하나로 실행 — ML 파이프라인(임베딩·태그·그래프) + Jinja2 HTML 렌더링 전체를 담당.
 
 ## 스택
 
@@ -32,18 +33,18 @@ src/                    # JS 모듈 (편집 대상)
   graph.js              # Cytoscape.js 그래프 렌더링
   post.js               # 포스트 페이지: marked + KaTeX + highlight + mermaid
   twinkle-feed.js       # 트윙클 피드/아카이브 (home + twinkle 공유)
-  home-graph.js         # 홈 페이지 그래프: 펄스, pull-to-expand, 줌 프리셋
+  home-graph.js         # 홈 페이지 그래프: 펄스, 풀스크린 모드, 줌 프리셋
   github.js             # /github/ 페이지 repos 목록
 
 style.css               # 다크 테마 CSS
 projects.json, github-sources.json, ...
 
-# 빌드 산출물 (build_site.py가 생성, git에 커밋됨):
+# 빌드 산출물 (gitignored — main.py가 자동 생성, git 미추적):
 index.html, about/index.html, blog/index.html, twinkle/index.html,
 github/index.html, posts/<slug>/index.html
 
 blog/
-  posts.json, graph.json, tags.json    # 자동생성 (post_update.py)
+  posts.json, graph.json, tags.json    # main.py 실행 시 자동생성 (git 추적됨, CI에서 사용)
   .post_cache.json, .tag_cache.json    # 임베딩 캐시 (gitignore)
 
 posts/<slug>/
@@ -98,13 +99,11 @@ uv run python main.py
 | 옵션 | 설명 |
 |------|------|
 | (없음) | 증분 업데이트 — 바뀐 글만 임베딩 재계산 + 태그 할당 + HTML 빌드 |
-| `--posts-only` | posts.json만 업데이트 (ML 모델 로딩 없음) + HTML 빌드 |
-| `--force` | 캐시 무시, 전체 임베딩 재계산 |
+| `--posts-only` | ML 스킵 — posts.json + twinkles + HTML 빌드만 (빠름) |
+| `--force` | 캐시 무시, 전체 임베딩 재계산 + HTML 빌드 |
 
-HTML만 다시 렌더링하려면:
-```bash
-uv run python scripts/build_site.py
-```
+`main.py`는 내부적으로 `scripts/build_site.py`를 마지막 단계로 호출합니다.
+HTML 렌더링만 단독 실행이 필요한 경우: `uv run python scripts/build_site.py`
 
 ## 자동 태그 시스템
 
@@ -149,8 +148,24 @@ uv run python scripts/build_site.py
 ## 로컬 미리보기
 
 ```bash
-python3 -m http.server 8080
-# http://localhost:8080/
+uv run python main.py        # 빌드 후
+python3 -m http.server 8080  # http://localhost:8080/
 ```
 
 fetch() 때문에 file:// 직접 열기 불가 — 반드시 서버 필요.
+
+## CI / 배포
+
+`.github/workflows/deploy.yml` — `main` 브랜치 push 시 자동 실행:
+
+1. `uv run python scripts/build_site.py` — HTML 렌더링만 (ML 불필요, JSON은 이미 커밋됨)
+2. `actions/upload-pages-artifact` + `actions/deploy-pages` → GitHub Pages 직접 배포
+
+**로컬 → 배포 워크플로우**:
+```
+uv run python main.py   # JSON + HTML 로컬 갱신
+git add blog/ posts/ ...
+git commit && git push  # → CI가 HTML 재빌드 후 Pages 자동 배포
+```
+
+빌드 산출물(index.html 등)은 git에 올리지 않습니다. CI가 항상 최신 소스로 재생성합니다.

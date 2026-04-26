@@ -7,32 +7,14 @@
 {% block content %}
 <main class="container">
   <section id="post-graph">
-    <div class="graph-toolbar">
-      <span class="graph-toolbar-label">Knowledge Graph</span>
-      <button id="graph-open-btn" type="button" aria-controls="graph-stage" aria-expanded="false">Explore graph</button>
-    </div>
     <div class="graph-stage" id="graph-stage">
       <div class="graph-container" id="graph-container"></div>
+      <button id="graph-open-btn" type="button" aria-controls="graph-stage" aria-expanded="false">Explore graph</button>
       <button id="graph-close-btn" type="button" aria-controls="graph-stage" aria-label="그래프 닫기">Close</button>
-      <div id="graph-zoom-controls">
-        <button class="zoom-preset active" data-zoom="1" tabindex="-1">1x</button>
-        <button class="zoom-preset" data-zoom="2" tabindex="-1">2x</button>
-        <button class="zoom-preset" data-zoom="2.5" tabindex="-1">2.5x</button>
-      </div>
     </div>
     <div id="graph-fallback" style="display:none">
       <div id="posts-container"></div>
     </div>
-  </section>
-
-  <section id="home-stats" class="home-stats" aria-label="블로그 활동 통계">
-    <div class="home-stats-header">
-      <span class="label--slash">Stats</span>
-      <h2>Blog Activity</h2>
-    </div>
-    <div class="home-stats-grid" id="home-stats-grid"></div>
-    <div class="home-heatmap" id="home-heatmap" aria-label="포스팅 활동 히트맵"></div>
-    <div class="home-top-tags" id="home-top-tags"></div>
   </section>
 
   <section id="about-teaser">
@@ -66,6 +48,16 @@
     <p style="margin-top:1.5rem;font-size:0.85rem">
       <a href="{{ root }}about/" class="secondary">전체 소개 보기 →</a>
     </p>
+  </section>
+
+  <section id="home-stats" class="home-stats" aria-label="블로그 활동 통계">
+    <div class="home-stats-header">
+      <span class="label--slash">Stats</span>
+      <h2>Blog Activity</h2>
+    </div>
+    <div class="home-stats-grid" id="home-stats-grid"></div>
+    <div class="home-heatmap" id="home-heatmap" aria-label="포스팅 활동 히트맵"></div>
+    <div class="home-top-tags" id="home-top-tags"></div>
   </section>
 </main>
 {% endblock %}
