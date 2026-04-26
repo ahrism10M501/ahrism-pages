@@ -121,3 +121,88 @@ def test_archive_tag_button_has_reset_styles():
     assert "background:" in archive_rule
     assert "font-family: inherit;" in archive_rule
     assert "box-sizing: border-box;" in archive_rule
+
+
+def test_home_template_uses_explicit_graph_controls():
+    html = read("templates/pages/home.html")
+    assert 'id="graph-open-btn"' in html
+    assert 'aria-controls="graph-stage"' in html
+    assert 'aria-expanded="false"' in html
+    assert 'id="graph-stage"' in html
+    assert 'id="graph-close-btn"' in html
+    assert 'aria-controls="graph-stage"' in html
+    assert "Explore graph" in html
+
+
+def test_home_graph_removes_pull_gesture_and_uses_fullscreen_mode():
+    js = read("src/home-graph.js")
+    assert "startPullToExpand" not in js
+    assert "touchstart" not in js
+    assert "touchmove" not in js
+    assert "graph-fullscreen" in js
+    assert "graph-modal-open" in js
+    assert ".resize()" in js
+
+
+def test_home_graph_fallback_disables_dead_open_affordance():
+    js = read("src/home-graph.js")
+    assert "disableGraphControlsForFallback" in js
+    assert "openBtn.disabled = true" in js
+    assert "toolbar.hidden = true" in js
+
+
+def test_home_graph_resets_zoom_preset_state_after_fit():
+    js = read("src/home-graph.js")
+    assert "function resetZoomPresetState()" in js
+    assert "btn.dataset.zoom === '1'" in js
+    assert "zoomBaseZoom = cy.zoom()" in js
+    refresh_rule = re.search(r"function refreshGraphFrame\(cy\)\s*\{(?P<body>.*?)\n  \}", js, re.DOTALL)
+    assert refresh_rule is not None
+    assert "resetZoomPresetState();" in refresh_rule.group("body")
+
+
+def test_home_graph_fullscreen_accessibility_and_focus_contracts():
+    js = read("src/home-graph.js")
+    for expected in [
+        "openBtn.setAttribute('aria-expanded', 'true')",
+        "openBtn.setAttribute('aria-expanded', 'false')",
+        "stage.setAttribute('role', 'dialog')",
+        "stage.setAttribute('aria-modal', 'true')",
+        "stage.removeAttribute('role')",
+        "stage.removeAttribute('aria-modal')",
+        "closeBtn.focus()",
+        "openBtn.focus()",
+    ]:
+        assert expected in js
+
+
+def test_home_graph_zoom_controls_only_focusable_in_fullscreen():
+    html = read("templates/pages/home.html")
+    js = read("src/home-graph.js")
+    css = read("style.css")
+    assert 'tabindex="-1"' in html
+    assert "function setZoomPresetsFocusable(isFocusable)" in js
+    assert "btn.tabIndex = isFocusable ? 0 : -1" in js
+    assert "setZoomPresetsFocusable(true)" in js
+    assert "setZoomPresetsFocusable(false)" in js
+    assert ".zoom-preset:focus-visible" in css
+    assert "#graph-open-btn:focus-visible" in css
+    assert "#graph-close-btn:focus-visible" in css
+
+
+def test_home_graph_fullscreen_traps_tab_focus():
+    js = read("src/home-graph.js")
+    focusables_rule = re.search(r"function getFullscreenFocusables\(\)\s*\{(?P<body>.*?)\n    \}", js, re.DOTALL)
+    assert focusables_rule is not None
+    assert "return [closeBtn]" in focusables_rule.group("body")
+    assert "offsetParent" not in focusables_rule.group("body")
+    for expected in [
+        "function handleFullscreenKeydown(e)",
+        "e.key === 'Tab'",
+        "document.activeElement",
+        "getFullscreenFocusables()",
+        "focusables[0].focus()",
+        "focusables[focusables.length - 1].focus()",
+        "e.preventDefault()",
+    ]:
+        assert expected in js

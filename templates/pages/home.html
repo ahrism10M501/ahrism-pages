@@ -7,14 +7,19 @@
 {% block content %}
 <main class="container">
   <section id="post-graph">
-    <div id="graph-hint" style="text-align:center;font-size:0.65rem;color:#2a2a2a;letter-spacing:2px;padding:0.3rem 0;user-select:none">↑ PULL</div>
-    <div class="graph-container" id="graph-container"></div>
-    <div id="graph-zoom-controls">
-      <button class="zoom-preset active" data-zoom="1">1x</button>
-      <button class="zoom-preset" data-zoom="2">2x</button>
-      <button class="zoom-preset" data-zoom="2.5">2.5x</button>
+    <div class="graph-toolbar">
+      <span class="graph-toolbar-label">Knowledge Graph</span>
+      <button id="graph-open-btn" type="button" aria-controls="graph-stage" aria-expanded="false">Explore graph</button>
     </div>
-    <button id="graph-back-btn" type="button">↓ BACK</button>
+    <div class="graph-stage" id="graph-stage">
+      <div class="graph-container" id="graph-container"></div>
+      <button id="graph-close-btn" type="button" aria-controls="graph-stage" aria-label="그래프 닫기">Close</button>
+      <div id="graph-zoom-controls">
+        <button class="zoom-preset active" data-zoom="1" tabindex="-1">1x</button>
+        <button class="zoom-preset" data-zoom="2" tabindex="-1">2x</button>
+        <button class="zoom-preset" data-zoom="2.5" tabindex="-1">2.5x</button>
+      </div>
+    </div>
     <div id="graph-fallback" style="display:none">
       <div id="posts-container"></div>
     </div>
